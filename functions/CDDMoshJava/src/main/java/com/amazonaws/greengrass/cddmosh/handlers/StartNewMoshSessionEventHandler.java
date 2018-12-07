@@ -64,13 +64,18 @@ public class StartNewMoshSessionEventHandler implements GreengrassLambdaEventHan
                 }
 
                 if (LOCALE.isPresent()) {
-                    launchWithLocale(LOCALE.get());
+                    // Launch with the current locale but clear it out if it fails
+                    LOCALE = Optional.ofNullable(launchWithLocale(LOCALE.get()));
                 } else {
                     // Find the first locale that works and save it if we find one
                     LOCALE = Arrays.stream(LOCALES)
                             .map(this::launchWithLocale)
                             .filter(Objects::nonNull)
                             .findFirst();
+                }
+
+                if (LOCALE.isPresent()) {
+                    log.info("mosh-server launch successful with locale [" + LOCALE.get() + "]");
                 }
             }
         } catch (Exception e) {
@@ -134,7 +139,7 @@ public class StartNewMoshSessionEventHandler implements GreengrassLambdaEventHan
         log.info("Server started on [" + listenPort + "]");
         eventBus.post(DatagramSocketCreatedEvent.builder().datagramSocket(datagramSocket).sendPort(port).listenPort(listenPort).build());
 
-        return result.get();
+        return locale;
     }
 
     @Subscribe
