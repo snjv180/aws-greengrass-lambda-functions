@@ -7,41 +7,16 @@ code for Greengrass Cores.  See the `CDDBaseline` README for more information.
 
 ## What is this function?
 
-This is a function that lets you use Mosh to remotely access your Greengrass core via AWS IoT.  It uses [mosh](https://mosh.org/)
-to make this magic happen.  Inside the Lambda container the application starts `mosh-server` which is then used as a
-virtual jump host to get into the Greengrass core.
+This is a function that lets you use Mosh to remotely access your Greengrass core via AWS IoT.  It uses
+[mosh](https://mosh.org/) to make this magic happen.  Using the new, no container isolation mode it starts `mosh-server`
+with the uid/gid specified in the configuration file.
 
-## Requirements
-
-You must install Dropbear SSH on the host.  You must also generate a Dropbear format key and put the public portion
-of the key on the host in the `.ssh/authorized_keys` directory of the user you want to connect as.
-
-The commands I use on the host to accomplish this are:
-
-```bash
-dropbearkey -t ecdsa -f temp.ecdsa
-dropbearkey -y -f temp.ecdsa >> ~/.ssh/authorized_keys
-```
-
-I then get the base64 encoding of `temp.ecdsa` so I can paste it into the Lambda container later like this:
-
-```bash
-base64 temp.ecdsa
-```
-
-## Limitations
-
-The repository does not contain the mosh-server binary so we don't pollute it with large blobs.  You'll need
-to add it to the `functions/CDDMoshJava/src/main/resources` directory.  You can get a pre-built x86_64 binary for
-Ubuntu 16.04 LTS from this URL:
-
-- [mosh-server](https://s3.amazonaws.com/timmatt-aws/shared/native-binaries/x86_64-ubuntu/mosh-server)
-
-The `fetch-x86_64-ubuntu-binaries.sh` script in the `functions/CDDMoshJava` directory will do this for you.
+**Note: If you have already done a deployment and built your config.json without the `allowFunctionsToRunAsRoot` option
+you'll need to update your config.json and add that option before this function will work**
 
 ## How do I use it?
 
-Use the IoT-modular-client's `greengrass-mosh` command.  It will give you tab completion of things in your account
+Use the AWS client's `greengrass-mosh` command.  It will give you tab completion of things in your account
 to make things easier.  Run `greengrass-mosh THING_NAME` where `THING_NAME` is the name of the thing associated
 with the Greengrass Core.  You will see a few messages like this
 
@@ -67,18 +42,8 @@ And if everything worked a few seconds later you'll get a message like this:
 Copy and paste everything on the second line after `StartTopic:` into another terminal.  mosh will start up and
 connect to a local proxy that proxies your mosh traffic over AWS IoT.
 
-When you are in the host you'll need to paste your Dropbear private key into the terminal.  Use the base64 data
-you obtained in the `Requirements` section.  Run this command:
+The terminal that you get is on the Greengrass host and will stay connected as long as the Greengrass Core and your
+local system can connect to AWS IoT.  It will reconnect if your network/IP changes as well.  Reconnecting may take up
+to 60 seconds so be patient if you see mosh's blue status bar and it says it can't talk to the host.
 
-```bash
-base64 -d /tmp/ecdsa.key
-```
-
-Then paste in the base64 data, press enter, then press CTRL-D to close the file.  Finally to ssh into the host
-run this command:
-
-```bash
-dbclient -i /tmp/ecdsa.key USER@localhost
-```
-
-Where `USER` is the user account that has your ECDSA key in its `.ssh/authorized_keys` file.
+**Note: If you close the AWS client the proxy is shut down and the mosh connections will be permanently broken**
