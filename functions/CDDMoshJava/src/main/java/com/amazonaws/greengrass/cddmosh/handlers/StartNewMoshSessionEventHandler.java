@@ -8,6 +8,7 @@ import com.amazonaws.greengrass.cddmosh.events.StartNewMoshSessionEvent;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.timmattison.greengrass.cdd.events.GreengrassLambdaEvent;
+import com.timmattison.greengrass.cdd.events.PublishBinaryEvent;
 import com.timmattison.greengrass.cdd.events.PublishObjectEvent;
 import com.timmattison.greengrass.cdd.handlers.interfaces.GreengrassLambdaEventHandler;
 import com.timmattison.greengrass.cdd.nativeprocesses.interfaces.NativeProcessHelper;
@@ -144,8 +145,6 @@ public class StartNewMoshSessionEventHandler implements GreengrassLambdaEventHan
 
     @Subscribe
     public void outboundDataEvent(OutboundDataEvent outboundDataEvent) {
-        Map data = new HashMap();
-        data.put("data", Base64.getEncoder().encodeToString(outboundDataEvent.getData()));
-        eventBus.post(PublishObjectEvent.builder().topic(topics.getDataOutputTopic(String.valueOf(outboundDataEvent.getPort()))).object(data).build());
+        eventBus.post(PublishBinaryEvent.builder().topic(topics.getDataServerTopic(String.valueOf(outboundDataEvent.getPort()))).bytes(outboundDataEvent.getData()).build());
     }
 }

@@ -1,7 +1,6 @@
 package com.amazonaws.greengrass.cddmosh.data;
 
 import com.timmattison.greengrass.cdd.data.CddTopics;
-import com.timmattison.greengrass.cdd.providers.interfaces.EnvironmentProvider;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -26,7 +25,19 @@ public class Topics {
     @Getter(lazy = true)
     private final String dataBaselineTopic = String.join("/", getBaselineTopic(), "data");
 
-    public String getDataOutputTopic(String id) {
-        return String.join("/", getDataBaselineTopic(), "from_gg", id);
+    public String getDataServerPrefix() {
+        return String.join("/", getDataBaselineTopic(), "server");
+    }
+
+    public String getDataServerTopic(String port) {
+        return String.join("/", getDataServerPrefix(), port);
+    }
+
+    public String getDataClientTopic(String port) {
+        return String.join("/", getDataClientPrefix(), port);
+    }
+
+    public String getDataClientPrefix() {
+        return String.join("/", getDataBaselineTopic(), "client");
     }
 }
