@@ -13,9 +13,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.inject.Inject;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
 @RequiredArgsConstructor(onConstructor = @__(@Inject))
@@ -36,8 +36,6 @@ public class InboundDataEventHandler implements GreengrassLambdaEventHandler {
             return;
         }
 
-        Map map = (Map) greengrassLambdaEvent.getInput();
-
         if (!greengrassLambdaEvent.getTopic().isPresent()) {
             log.error("No topic");
             return;
@@ -45,12 +43,31 @@ public class InboundDataEventHandler implements GreengrassLambdaEventHandler {
 
         String topic = greengrassLambdaEvent.getTopic().get();
 
+        if (topic.startsWith(topics.getDataServerPrefix())) {
+            // Ignore server messages
+            return;
+        }
+
+        if (!topic.startsWith(topics.getDataClientPrefix())) {
+            log.error("Unexpected inbound topic [" + topic + "]");
+            return;
+        }
+
+        Optional<byte[]> optionalBinaryInput = greengrassLambdaEvent.getBinaryInput();
+
+        if (!optionalBinaryInput.isPresent()) {
+            log.error("No binary input");
+            return;
+        }
+
+        byte[] binaryInput = optionalBinaryInput.get();
+
         int port = Integer.parseInt(topic.substring(topic.lastIndexOf('/') + 1));
 
         InboundDataEvent.InboundDataEventBuilder inboundDataEventBuilder = InboundDataEvent.builder();
 
         inboundDataEventBuilder.port(port);
-        inboundDataEventBuilder.data(Base64.getDecoder().decode((String) map.get("data")));
+        inboundDataEventBuilder.data(binaryInput);
 
         eventBus.post(inboundDataEventBuilder.build());
     }
