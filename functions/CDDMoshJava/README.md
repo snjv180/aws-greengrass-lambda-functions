@@ -42,6 +42,8 @@ And if everything worked a few seconds later you'll get a message like this:
 Copy and paste everything on the second line after `StartTopic:` into another terminal.  mosh will start up and
 connect to a local proxy that proxies your mosh traffic over AWS IoT.
 
+*NOTE: If you are using fish instead of bash you'll need to prefix the command with `env`*
+
 The terminal that you get is on the Greengrass host and will stay connected as long as the Greengrass Core and your
 local system can connect to AWS IoT.  It will reconnect if your network/IP changes as well.  Reconnecting may take up
 to 60 seconds so be patient if you see mosh's blue status bar and it says it can't talk to the host.
