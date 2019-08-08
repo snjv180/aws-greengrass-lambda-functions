@@ -16,16 +16,13 @@ AWS_CLI_ERROR_EXIT_CODE=1
 set +e
 
 CLI=1
-DOCKER_SESSION_TOKEN=""
+DOCKER_SESSION_TOKEN="-e AWS_SESSION_TOKEN=$AWS_SESSION_TOKEN"
 
 hash aws 2> /dev/null
 
 if [ $? -ne 0 ]; then
   echo "AWS CLI not installed, looking for credentials via instance metadata service (EC2 only)"
   CLI=0
-else
-# Is the AWS CLI configured?
-  AWS_ACCESS_KEY_ID=$(aws configure get aws_access_key_id)
 fi
 
 if [ $? -ne 0 ] || [ $CLI -eq 0 ]; then
@@ -55,8 +52,8 @@ if [ $? -ne 0 ] || [ $CLI -eq 0 ]; then
     REGION="`echo \"$AVAILABILITY_ZONE\" | sed 's/[a-z]$//'`"
   fi 
 else
-  AWS_SECRET_ACCESS_KEY=$(aws configure get aws_secret_access_key)
-
+  #AWS_SECRET_ACCESS_KEY=$(aws configure get aws_secret_access_key)
+  echo "hehe"
   if [ $? -ne 0 ]; then
     echo $AWS_CLI_ERROR_MESSAGE_PREFIX secret access key $AWS_CLI_ERROR_MESSAGE_SUFFIX
     exit $AWS_CLI_ERROR_EXIT_CODE
