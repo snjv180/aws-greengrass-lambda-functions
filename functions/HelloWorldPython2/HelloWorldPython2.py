@@ -54,8 +54,8 @@ def greengrass_hello_world_run():
         payload['message'] = 'Hello world! Sent from Greengrass Core from Python {} {} {} {}'.format(
                 python_version, GROUP_ID, THING_NAME, THING_ARN)
     else:
-        payload['message'] = 'Hello world! Sent from Greengrass Core from Python {} running on platform {} {} {} {}'.format(
-            python_version, my_platform, GROUP_ID, THING_NAME, THING_ARN)
+        #payload['message'] = 'Hello world! Sent from Greengrass Core from Python running on platform {} {} {} {}'.format(my_platform, GROUP_ID, THING_NAME, THING_ARN)
+        payload['message'] = 'WELCOME TO CRADLEPOINT SE SUMMIT 2019!!!'
     client.publish(topic=THING_NAME + '/python2/hello/world',
                    payload=json.dumps(payload))
 
